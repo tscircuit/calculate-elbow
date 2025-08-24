@@ -11,17 +11,56 @@ const OVERSHOOT_AMOUNT = 50
 
 type FacingDirectionOption = ElbowPoint["facingDirection"] | "none"
 
+const STORAGE_KEY = "elbow-points"
+
+const loadPointsFromStorage = (): {
+  point1: ElbowPoint
+  point2: ElbowPoint
+} | null => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (error) {
+    console.warn("Failed to load points from localStorage:", error)
+  }
+  return null
+}
+
+const savePointsToStorage = (point1: ElbowPoint, point2: ElbowPoint) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ point1, point2 }))
+  } catch (error) {
+    console.warn("Failed to save points to localStorage:", error)
+  }
+}
+
+const clearPointsFromStorage = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch (error) {
+    console.warn("Failed to clear points from localStorage:", error)
+  }
+}
+
 const App: React.FC = () => {
-  const [point1, setPoint1] = useState<ElbowPoint>({
-    x: 100,
-    y: 100,
-    facingDirection: "x+",
-  })
-  const [point2, setPoint2] = useState<ElbowPoint>({
-    x: 300,
-    y: 200,
-    facingDirection: "y-",
-  })
+  const storedPoints = loadPointsFromStorage()
+
+  const [point1, setPoint1] = useState<ElbowPoint>(
+    storedPoints?.point1 || {
+      x: 100,
+      y: 100,
+      facingDirection: "x+",
+    },
+  )
+  const [point2, setPoint2] = useState<ElbowPoint>(
+    storedPoints?.point2 || {
+      x: 300,
+      y: 200,
+      facingDirection: "y-",
+    },
+  )
   const [calculatedElbowPath, setCalculatedElbowPath] = useState<
     Array<{ x: number; y: number }>
   >([])
@@ -35,6 +74,20 @@ const App: React.FC = () => {
   const svgRef = useRef<SVGSVGElement>(null)
   const [sceneJsonInput, setSceneJsonInput] = useState("")
   const [pathJsonForTextarea, setPathJsonForTextarea] = useState<string>("")
+
+  const clearStoredPoints = useCallback(() => {
+    clearPointsFromStorage()
+    setPoint1({
+      x: 100,
+      y: 100,
+      facingDirection: "x+",
+    })
+    setPoint2({
+      x: 300,
+      y: 200,
+      facingDirection: "y-",
+    })
+  }, [])
 
   useEffect(() => {
     // If point1 or point2 changes, it means user interacted, so clear any loaded path override.
@@ -308,6 +361,15 @@ const App: React.FC = () => {
               </option>
             ))}
           </select>
+        </div>
+        <div className="control-group">
+          case: {globalThis.__DEBUG_CALCULATE_ELBOW_CASE}
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={clearStoredPoints}>Clear</button>
+            <button onClick={() => savePointsToStorage(point1, point2)}>
+              Save
+            </button>
+          </div>
         </div>
       </div>
 

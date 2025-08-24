@@ -13,6 +13,10 @@ export type NormalisedStartPoint = Omit<ElbowPoint, "facingDirection"> & {
   facingDirection?: "x+"
 }
 
+declare global {
+  var __DEBUG_CALCULATE_ELBOW_CASE: number
+}
+
 /**
  * IMPORTANT:
  * `calculateElbow` always calls this helper with a normalised coordinate system
@@ -60,69 +64,120 @@ export const calculateElbowBends = (
   }
 
   if (startDir === "none" && endDir === "none") {
+    globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 1
     push({ x: midX, y: p1.y })
     push({ x: midX, y: p2.y })
   } else if (startDir === "x+" && endDir === "y+") {
+    globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 2
     if (p1.x > p2.x && p1.y < p2.y) {
-      push({ x: p1.x, y: p2.y })
-      push({ x: p2.x, y: p2.y })
+      globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 2.1
+      push({ x: p1.x + overshootAmount, y: p1.y })
+      push({ x: p1.x + overshootAmount, y: p2.y + overshootAmount })
+      push({ x: p2.x, y: p2.y + overshootAmount })
     } else if (p1.x < p2.x && p1.y > p2.y) {
+      globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 2.2
       push({ x: p2.x, y: p1.y })
     } else if (p1.x === p2.x) {
+      globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 2.3
       push({ x: p1.x + overshootAmount, y: p1.y })
-      push({ x: p1.x + overshootAmount, y: midY })
-      push({ x: p2.x, y: midY })
+      push({ x: p1.x + overshootAmount, y: p2.y + overshootAmount })
+      push({ x: p2.x, y: p2.y + overshootAmount })
     } else {
       if (p1.x < p2.x) {
+        globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 2.4
         push({ x: midX, y: p1.y })
         push({ x: midX, y: p2Target.y })
         push({ x: p2.x, y: p2Target.y })
+        // Handle the case in the comment below
+      } else if (p1.y <= p2.y + overshootAmount) {
+        globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 2.5
+        push({ x: p1.x + overshootAmount, y: p1.y })
+        push({ x: p1.x + overshootAmount, y: p1.y + overshootAmount })
+        push({ x: p2.x, y: p1.y + overshootAmount })
+        push({ x: p2.x, y: p2.y })
       } else {
-        const p1OvershootX = p1.x + overshootAmount
-        push({ x: p1OvershootX, y: p1.y })
-        push({ x: p1OvershootX, y: p2Target.y })
-        push({ x: p2.x, y: p2Target.y })
+        globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 2.6
+        push({ x: p1.x + overshootAmount, y: p1.y })
+        push({ x: p1.x + overshootAmount, y: (p1.y + p2.y) / 2 })
+        push({ x: p2.x, y: (p1.y + p2.y) / 2 })
       }
     }
-  } else if (startDir === "x+" && endDir === "x+") {
+  } else if (startDir === "x+" && endDir === "x+" && p1.y !== p2.y) {
+    globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 3
     const commonX = Math.max(p1.x + overshootAmount, p2Target.x)
     push({ x: commonX, y: p1.y })
     push({ x: commonX, y: p2.y })
+  } else if (startDir === "x+" && endDir === "x+" && p1.y === p2.y) {
+    globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 3.1
+    push({ x: p1.x + overshootAmount, y: p1.y })
+    push({ x: p1.x + overshootAmount, y: p1.y + overshootAmount })
+    push({ x: p2.x + overshootAmount, y: p1.y + overshootAmount })
+    push({ x: p2.x + overshootAmount, y: p2.y })
   } else if (startDir === "x+" && endDir === "y-") {
-    if (p1.x === p2.x) {
+    if (p1.x === p2.x && p1.y <= p2.y) {
+      globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 4.11
       push({ x: p1.x + overshootAmount, y: p1.y })
       push({ x: p1.x + overshootAmount, y: midY })
       push({ x: p2.x, y: midY })
+    } else if (p1.x === p2.x && p1.y > p2.y) {
+      globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 4.12
+      push({ x: p1.x + overshootAmount, y: p1.y })
+      push({ x: p1.x + overshootAmount, y: p2.y - overshootAmount })
+      push({ x: p2.x, y: p2.y - overshootAmount })
     } else if (p1.x < p2.x && p1.y < p2.y) {
+      globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 4.2
       push({ x: p2.x, y: p1.y })
     } else {
-      // Special-case: when the start is to the right of the end but still
-      // above it we overshoot horizontally from the start and then route
-      // vertically through the vertical mid-point. This produces the shorter
-      // path expected by the spec.
       if (p1.x > p2.x && p1.y < p2.y) {
+        globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 4.3
         const p1OvershootX = p1.x + overshootAmount
         push({ x: p1OvershootX, y: p1.y })
         push({ x: p1OvershootX, y: midY })
         push({ x: p2.x, y: midY })
-      // Symmetric case: the start is to the right of the end *and* below it.
-      // We overshoot horizontally from the start and then route vertically
-      // straight to the Y-overshoot of the end point – mirroring the logic
-      // above but for the lower-right quadrant.
       } else if (p1.x > p2.x && p1.y > p2.y) {
+        globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 4.4
         const p1OvershootX = p1.x + overshootAmount
         push({ x: p1OvershootX, y: p1.y })
         push({ x: p1OvershootX, y: p2Target.y })
         push({ x: p2.x, y: p2Target.y })
+      } else if (p1.y === p2.y) {
+        globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 4.5
+        push({ x: p1.x + overshootAmount, y: p1.y })
+        push({ x: p1.x + overshootAmount, y: p1.y - overshootAmount })
+        push({ x: p2.x, y: p1.y - overshootAmount })
       } else {
-        // Default fallback: route via the horizontal mid-point between the
-        // two X coordinates and the Y-overshoot of the end point.
+        globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 4.6
         push({ x: midX, y: p1.y })
         push({ x: midX, y: p2Target.y })
         push({ x: p2.x, y: p2Target.y })
       }
     }
+  } else if (
+    startDir === "x+" &&
+    endDir === "x-" &&
+    p1.x + overshootAmount >= p2.x - overshootAmount &&
+    p2.y !== p1.y
+  ) {
+    globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 5
+    const p1OvershootX = p1.x + overshootAmount
+    push({ x: p1OvershootX, y: p1.y })
+    push({ x: p1OvershootX, y: midY })
+    push({ x: p2Target.x, y: midY })
+    push({ x: p2Target.x, y: p2Target.y })
+  } else if (
+    startDir === "x+" &&
+    endDir === "x-" &&
+    p2.y === p1.y &&
+    p2.x > p1.x
+  ) {
+  } else if (startDir === "x+" && endDir === "x-" && p2.y === p1.y) {
+    globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 7
+    push({ x: p1.x + overshootAmount, y: p1.y })
+    push({ x: p1.x + overshootAmount, y: p1.y + overshootAmount })
+    push({ x: p2.x - overshootAmount, y: p1.y + overshootAmount })
+    push({ x: p2.x - overshootAmount, y: p1.y })
   } else {
+    globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 8
     if (startDir === "x+") {
       push({ x: p1.x + overshootAmount, y: p1.y })
     }
