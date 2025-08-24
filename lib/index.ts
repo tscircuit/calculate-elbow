@@ -98,8 +98,7 @@ export const calculateElbow = (
 
   const overshootAmount =
     options?.overshoot ??
-    0.1 *
-      Math.max(Math.abs(rp1.x - rp2.x), Math.abs(rp1.y - rp2.y))
+    0.1 * Math.max(Math.abs(rp1.x - rp2.x), Math.abs(rp1.y - rp2.y))
 
   let result = calculateElbowBends(
     rp1 as NormalisedStartPoint,
