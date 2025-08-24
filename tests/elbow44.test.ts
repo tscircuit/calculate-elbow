@@ -14,7 +14,7 @@ const scene = {
   },
 } as const
 
-test("elbow33", () => {
+test("elbow44", () => {
   const result = calculateElbow(scene.point1, scene.point2, {
     overshoot: 50,
   })
