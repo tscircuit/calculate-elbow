@@ -63,6 +63,9 @@ export const calculateElbowBends = (
     if (last.x !== pt.x || last.y !== pt.y) result.push(pt)
   }
 
+  // Treat very small y differences as equal to produce stable paths
+  const yAligned = Math.abs(p1.y - p2.y) <= Math.max(1e-6, overshootAmount * 0.1)
+
   if (startDir === "none" && endDir === "none") {
     globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 1
     push({ x: midX, y: p1.y })
@@ -102,12 +105,12 @@ export const calculateElbowBends = (
         push({ x: p2.x, y: (p1.y + p2.y) / 2 })
       }
     }
-  } else if (startDir === "x+" && endDir === "x+" && p1.y !== p2.y) {
+  } else if (startDir === "x+" && endDir === "x+" && !yAligned) {
     globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 3
     const commonX = Math.max(p1.x + overshootAmount, p2Target.x)
     push({ x: commonX, y: p1.y })
     push({ x: commonX, y: p2.y })
-  } else if (startDir === "x+" && endDir === "x+" && p1.y === p2.y) {
+  } else if (startDir === "x+" && endDir === "x+" && yAligned) {
     globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 3.1
     push({ x: p1.x + overshootAmount, y: p1.y })
     push({ x: p1.x + overshootAmount, y: p1.y + overshootAmount })

@@ -15,8 +15,22 @@ const scene = {
 } as const
 
 test("elbow45", () => {
+  const overshoot = 0.2
   const result = calculateElbow(scene.point1, scene.point2, {
-    overshoot: 0.2,
+    overshoot,
   })
-  console.log(result)
+  const expected = [
+    { x: scene.point1.x, y: scene.point1.y },
+    { x: scene.point1.x - overshoot, y: scene.point1.y },
+    { x: scene.point1.x - overshoot, y: scene.point1.y + overshoot },
+    { x: scene.point2.x - overshoot, y: scene.point1.y + overshoot },
+    { x: scene.point2.x - overshoot, y: scene.point2.y },
+    { x: scene.point2.x, y: scene.point2.y },
+  ]
+
+  expect(result).toHaveLength(expected.length)
+  for (let i = 0; i < result.length; i++) {
+    expect(result[i]?.x).toBeCloseTo(expected[i]!.x, 5)
+    expect(result[i]?.y).toBeCloseTo(expected[i]!.y, 5)
+  }
 })
