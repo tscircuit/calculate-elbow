@@ -1,5 +1,5 @@
-import removeDebugPlugin from './plugins/remove-debug.js'
+import removeDebugPlugin from "./plugins/remove-debug.js"
 
 export default {
-  plugins: [removeDebugPlugin()]
+  plugins: [removeDebugPlugin()],
 }
