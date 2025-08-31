@@ -34,6 +34,16 @@ export const calculateElbowBends = (
   p2: ElbowPoint,
   overshootAmount: number,
 ): Array<{ x: number; y: number }> => {
+  // Input validation for better error handling
+  if (overshootAmount < 0) {
+    throw new Error("overshootAmount must be non-negative")
+  }
+  
+  if (!Number.isFinite(p1.x) || !Number.isFinite(p1.y) || 
+      !Number.isFinite(p2.x) || !Number.isFinite(p2.y)) {
+    throw new Error("All coordinates must be finite numbers")
+  }
+
   const result: Array<{ x: number; y: number }> = [{ x: p1.x, y: p1.y }]
 
   const midX = (p1.x + p2.x) / 2
@@ -58,16 +68,21 @@ export const calculateElbowBends = (
   const startDir = p1.facingDirection ?? "none"
   const endDir = p2.facingDirection ?? "none"
 
+  // Optimized push function: avoid redundant array operations with better floating point comparison
   const push = (pt: { x: number; y: number }) => {
     const last = result[result.length - 1]!
-    if (last.x !== pt.x || last.y !== pt.y) result.push(pt)
+    // Use more efficient comparison with small tolerance for floating point
+    const tolerance = 1e-10
+    if (Math.abs(last.x - pt.x) > tolerance || Math.abs(last.y - pt.y) > tolerance) {
+      result.push(pt)
+    }
   }
 
-  // Treat very small y differences as equal to produce stable paths
-  const yAligned =
-    Math.abs(p1.y - p2.y) <= Math.max(1e-6, overshootAmount * 0.1)
-  const xAligned =
-    Math.abs(p1.x - p2.x) <= Math.max(1e-6, overshootAmount * 0.1)
+  // Treat very small differences as equal to produce stable paths
+  // Use a more robust tolerance calculation
+  const tolerance = Math.max(1e-8, overshootAmount * 0.01)
+  const yAligned = Math.abs(p1.y - p2.y) <= tolerance
+  const xAligned = Math.abs(p1.x - p2.x) <= tolerance
 
   if (startDir === "none" && endDir === "none") {
     globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 1
@@ -176,6 +191,13 @@ export const calculateElbowBends = (
     p2.y === p1.y &&
     p2.x > p1.x
   ) {
+    globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 6
+    // When points are aligned horizontally and p2 is to the right of p1,
+    // we need to create a path that goes up, over, and down
+    push({ x: p1.x + overshootAmount, y: p1.y })
+    push({ x: p1.x + overshootAmount, y: p1.y + overshootAmount })
+    push({ x: p2.x - overshootAmount, y: p1.y + overshootAmount })
+    push({ x: p2.x - overshootAmount, y: p2.y })
   } else if (startDir === "x+" && endDir === "x-" && p2.y === p1.y) {
     globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 7
     push({ x: p1.x + overshootAmount, y: p1.y })
