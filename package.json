@@ -8,7 +8,8 @@
     "build:lib": "tsdown lib/index.ts --dts --outdir dist",
     "build:site": "bun build site/index.html --outdir site-build",
     "vercel-build": "bun run build:site",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "format:check": "biome format ."
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.3",
