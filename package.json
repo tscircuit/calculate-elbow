@@ -1,6 +1,10 @@
 {
   "name": "calculate-elbow",
   "version": "0.0.12",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tscircuit/calculate-elbow.git"
+  },
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
