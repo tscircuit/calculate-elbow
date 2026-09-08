@@ -6,6 +6,11 @@ import {
 
 export type { ElbowPoint }
 
+const COORDINATE_EPSILON = 1e-9
+
+const snapNearlyEqualCoordinates = (value: number, reference: number) =>
+  Math.abs(value - reference) <= COORDINATE_EPSILON ? reference : value
+
 export const calculateElbow = (
   point1: ElbowPoint,
   point2: ElbowPoint,
@@ -17,8 +22,13 @@ export const calculateElbow = (
     overshoot?: number
   } = {},
 ): Array<{ x: number; y: number }> => {
-  let p1 = point1
-  let p2 = point2
+  const originalStart = point1
+  const originalEnd = point2
+  let p1 = { ...point1 }
+  let p2 = {
+    ...point2,
+    y: snapNearlyEqualCoordinates(point2.y, point1.y),
+  }
   let orderFlipped = false
 
   if (p1.x > p2.x || (p1.x === p2.x && p1.y > p2.y)) {
@@ -117,5 +127,12 @@ export const calculateElbow = (
     }))
   }
 
-  return orderFlipped ? result.reverse() : result
+  const orderedResult = orderFlipped ? result.reverse() : result
+  orderedResult[0] = { x: originalStart.x, y: originalStart.y }
+  orderedResult[orderedResult.length - 1] = {
+    x: originalEnd.x,
+    y: originalEnd.y,
+  }
+
+  return orderedResult
 }
