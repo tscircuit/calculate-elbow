@@ -171,12 +171,16 @@ export const calculateElbowBends = (
     push({ x: p2Target.x, y: midY })
     push({ x: p2Target.x, y: p2Target.y })
   } else if (startDir === "x+" && endDir === "x-" && yAligned && p2.x > p1.x) {
+    if (p1.y !== p2.y) {
+      push({ x: midX, y: p1.y })
+      push({ x: midX, y: p2.y })
+    }
   } else if (startDir === "x+" && endDir === "x-" && yAligned) {
     globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 7
     push({ x: p1.x + overshootAmount, y: p1.y })
     push({ x: p1.x + overshootAmount, y: p1.y + overshootAmount })
     push({ x: p2.x - overshootAmount, y: p1.y + overshootAmount })
-    push({ x: p2.x - overshootAmount, y: p1.y })
+    push({ x: p2.x - overshootAmount, y: p2.y })
   } else {
     globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 8
     if (startDir === "x+") {
