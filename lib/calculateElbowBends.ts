@@ -120,7 +120,7 @@ export const calculateElbowBends = (
     push({ x: p2.x + overshootAmount, y: p1.y + overshootAmount })
     push({ x: p2.x + overshootAmount, y: p2.y })
   } else if (startDir === "x+" && endDir === "y-") {
-    if (xAligned && p1.y <= p2.y) {
+    if (xAligned && p1.y < p2.y) {
       globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 4.11
       push({ x: p1.x + overshootAmount, y: p1.y })
       push({ x: p1.x + overshootAmount, y: midY })
