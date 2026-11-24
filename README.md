@@ -32,7 +32,7 @@ console.log(path)
 
 `calculateElbow` returns an array of points representing the orthogonal segments from start to end. The optional `overshoot` parameter controls how far the path extends beyond the end point when aligning with its facing direction.
 
- The function automatically sorts the two input points internally so calculations always proceed from the left-most (and, when tied on `x`, the lowest `y`) point. If the inputs are provided in the opposite order, the resulting array is reversed so the path still runs from the original first point to the second.
+The function automatically sorts the two input points internally so calculations always proceed from the left-most (and, when tied on `x`, the lowest `y`) point. If the inputs are provided in the opposite order, the resulting array is reversed so the path still runs from the original first point to the second.
 
 ## Testing
 
