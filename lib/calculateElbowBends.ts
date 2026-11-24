@@ -171,12 +171,22 @@ export const calculateElbowBends = (
     push({ x: p2Target.x, y: midY })
     push({ x: p2Target.x, y: p2Target.y })
   } else if (startDir === "x+" && endDir === "x-" && yAligned && p2.x > p1.x) {
+    if (p1.y !== p2.y) {
+      globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 6
+      // yAligned is a tolerance, not an exact match, so a straight route
+      // would leave a diagonal segment and skip both facing directions.
+      const p1OvershootX = p1.x + overshootAmount
+      const p2OvershootX = p2.x - overshootAmount
+      push({ x: p1OvershootX, y: p1.y })
+      push({ x: p1OvershootX, y: p2.y })
+      push({ x: p2OvershootX, y: p2.y })
+    }
   } else if (startDir === "x+" && endDir === "x-" && yAligned) {
     globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 7
     push({ x: p1.x + overshootAmount, y: p1.y })
     push({ x: p1.x + overshootAmount, y: p1.y + overshootAmount })
     push({ x: p2.x - overshootAmount, y: p1.y + overshootAmount })
-    push({ x: p2.x - overshootAmount, y: p1.y })
+    push({ x: p2.x - overshootAmount, y: p2.y })
   } else {
     globalThis.__DEBUG_CALCULATE_ELBOW_CASE = 8
     if (startDir === "x+") {
